@@ -1,0 +1,9 @@
+# Build files
+*.hex
+*.LST
+*.M51
+*.OBJ
+*.ABS
+# Proteus files
+*.workspace
+*.pdsbak
