@@ -11,6 +11,8 @@
 #include "set.h"
 #include "delay.h"
 
+#define u8 int
+
 u8 motor_state = 0; // on or off
 u8 motion_direction = 0; // up -> 1  down -> 2
 
@@ -43,3 +45,16 @@ void elevator(void)
 
 }
 
+//3FH,06H,5BH,4FH,66H,
+
+void seven_segment(u8 floor_num)
+{
+    switch (floor_num)
+    {
+        case 0:      port_name=0x3F;    break;
+        case 1:      port_name=0x06;    break;
+        case 2:      port_name=0x5b;    break;
+        case 3:      port_name=0x4f;    break;
+        case 4:      port_name=0x66;    break;
+    }
+}
