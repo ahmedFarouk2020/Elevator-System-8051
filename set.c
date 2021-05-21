@@ -28,9 +28,11 @@ u8 push_value(u8 value)
 
 u8 enqueue(u8 value)
 {
+    if(q_size == 0)     q_index = 0;
     if(q_index <5){
         queue[q_index] = value;
         q_index++;
+        q_size++;
         return 1;
     }
     else{ return 0; }
@@ -46,6 +48,7 @@ u8 dequeue()
             poped_data = queue[counter];
             queue[counter] = 0;
             if(counter == 4)    {q_index = 0;}
+            q_size--;
             return poped_data;
         }
     }
