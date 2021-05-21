@@ -16,7 +16,9 @@ ld 		:= $(SiLabsPath)/MCU/IDEfiles/C51/BIN/bl51.exe
 default: link
 	$(OH) $(mainFile).ABS
 	
-	
+clean:
+	del *.OBJ *.LST *.hex *.ABS *.M51
+
 link:
 	$(foreach var,$(SRCS), $(CC) $(var) DB OE BR;)
 	$(ld) $(OBJS) TO $(mainFile).ABS
