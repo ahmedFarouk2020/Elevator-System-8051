@@ -1,6 +1,6 @@
 # write the files without extension
-FILES := main
-mainFile := main
+FILES := program
+mainFile := program
 SiLabsPath = C:/SiLabs
 
 
