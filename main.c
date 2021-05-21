@@ -2,113 +2,95 @@
 // #include "Headers/stack.h"
 #include "Headers/BIT_MATH.h"
 #include "Headers/STD_TYPES.h"
-// #include "set.h"
-
-// STACK -------------------------------------------
-/* MAX NUM OF ELEMENT IN STACK IS 100 */
-#define MAXSTACK 10
-
-/* REMEBER TO CHANGE THE FN diplay ACCORDING TO THIS */
-#define StackEntry u8
-
-typedef struct
-{
-    u8 top; /* POINTS TO THE LOCATION IN WHICH WE PUT THE DATA (ACCESS THEN INCREAMENT) */
-    StackEntry entry[MAXSTACK];
-
-}Stack;
-void createStack(Stack* ptr_s)
-{
-    ptr_s->top = 0;
-}
-
-u8 push(StackEntry value , Stack* ptr_s)
-{
-    if(ptr_s->top == MAXSTACK)
-        return 0;
-    else    
-    {
-        ptr_s->entry[ptr_s->top++] = value ;
-        return 1;
-    }    
-}
-
-
-u8 StackFull(Stack* ptr_s)
-{
-    return((ptr_s->top == MAXSTACK));
-}
-
-u8 StackEmpty(Stack* ptr_s)
-{
-    return((ptr_s->top == 0));
-}
-
-void pop(StackEntry* pe , Stack* ptr_s)
-{
-    *pe = ptr_s->entry[-- ptr_s->top];
-}
-
-void clearStack(Stack* ptr_s)
-{
-    ptr_s->top = 0;
-}
-//  -------------------------------------------
-
-// SET -----------------------------------------------------
 u8 requests[10] = {0};
-u8 index; // the place in array where the new value will be placed
-u8 push_value(u8 value)
+u8 index = 0;   // the place in array where the new value will be placed
+u8 queue[5] = {0};
+u8 q_index = 0; // the place in array where the new value will be placed
+u8 q_size = 0;
+int add()
 {
-    if(index <= 9){    
-        requests[index] = value;
-        index++;
-        return 1;
-    }
-    else{
-        u8 counter = 0;
-        for(counter; counter <= 9; counter++){
-            if(requests[counter] == 0)
-            {
-                requests[counter] = value;
-                return 1;
-            }
-        }
-        return 0;
-    }
-
+    return 1;
 }
+// u8 push_value(u8 value)
+// {
+//     if(index <= 9){    
+//         requests[index] = value;
+//         index++;
+//         return 1;
+//     }
+//     else{
+//         u8 counter = 0;
+//         for(counter; counter <= 9; counter++){
+//             if(requests[counter] == 0)
+//             {
+//                 requests[counter] = value;
+//                 return 1;
+//             }
+//         }
+//         return 0;
+//     }
+
+// }
+
+
+// u8 enqueue(u8 value)
+// {
+//     if(q_size == 0)     q_index = 0;
+//     if(q_index <5){
+//         queue[q_index] = value;
+//         q_index++;
+//         q_size++;
+//         return 1;
+//     }
+//     else{ return 0; }
+// }
+
+// u8 dequeue()
+// {
+//     u8 counter = 0;
+//     u8 poped_data;
+//     for(counter; counter <= 5; counter++){
+//         if(queue[counter] != 0)
+//         {
+//             poped_data = queue[counter];
+//             queue[counter] = 0;
+//             if(counter == 4)    {q_index = 0;}
+//             q_size--;
+//             return poped_data;
+//         }
+//     }
+//     return 0;
+// }
 
 /* 
  * returned Value = 1? value exists
  * returned Value = 0? value isn't exist
  */ 
-u8 Is_value_exist(u8 value)
-{
-    u8 i = 0; // counter
-    for(i; i <= 9; i++)
-    {
-        if(value == requests[i])
-        {
+// u8 Is_value_exist(u8 value)
+// {
+//     u8 i = 0; // counter
+//     for(i; i <= 9; i++)
+//     {
+//         if(value == requests[i])
+//         {
             
-            return i;
-        }
-    }
-}
+//             return i;
+//         }
+//     }
+// }
 
-void remove_index(u8 index)
-{
-    requests[index] = 0;
-}
-// -----------------------------------------------------
-void Delay_MS(u16 ms){
-    u16 i;
-    u16 j;
-    for(i=0; i<ms; i++){
-        for(j=0; j<120; j++){
-        }
-    }
-}
+// void remove_index(u8 index)
+// {
+//     requests[index] = 0;
+// }// -----------------------------------------------------
+// void Delay_MS(u16 ms){
+//     u16 i;
+//     u16 j;
+//     for(i=0; i<ms; i++){
+//         for(j=0; j<120; j++){
+//         }
+//     }
+// }
 int main()
 {
     // Stack *ptr = &requests;
@@ -140,8 +122,7 @@ int main()
     
 
     // REQUESTS_PORT = 0x00; //Control
-    index = 0;
-    Delay_MS(10);
+    // Delay_MS(10);
     while (1)
     {
 
@@ -150,7 +131,6 @@ int main()
 }
 void request(void) interrupt 0
 {
-    push_value(1);
     if(GET_BIT(P2,1))
     {
         TOG_BIT(P1,0); //toggle led_2
