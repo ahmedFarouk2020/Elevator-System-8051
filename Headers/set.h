@@ -7,6 +7,7 @@ u8 requests[10] = {0};
 u8 queue[5] = {0};
 u8 index = 0;   // the place in array where the new value will be placed
 u8 q_index = 0; // the place in array where the new value will be placed
+u8 q_size = 0;
 /********************************/
 /*          FUNCTIONS            */
 /******************************/
