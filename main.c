@@ -2,21 +2,26 @@
 // #include "Headers/stack.h"
 #include "Headers/BIT_MATH.h"
 #include "Headers/STD_TYPES.h"
-u8 requests[10] = {0};
+#include "stepperMotor/motor.c"
+
+u8 requests[5] = {0};
 u8 queue[5] = {0};
 u8 index = 0;   // the place in array where the new value will be placed
 u8 q_index = 0; // the place in array where the new value will be placed
 u8 q_size = 0;
 u8 push_value(u8 value)
 {
-    if(index <= 9){    
+    if (Is_value_exist(value))
+        return 0;
+    
+    if(index <= 4){    
         requests[index] = value;
         index++;
         return 1;
     }
     else{
         u8 counter = 0;
-        for(counter; counter <= 9; counter++){
+        for(counter; counter <= 4; counter++){
             if(requests[counter] == 0)
             {
                 requests[counter] = value;
@@ -27,7 +32,6 @@ u8 push_value(u8 value)
     }
 
 }
-
 u8 enqueue(u8 value)
 {
     if(q_size == 0)     q_index = 0;
@@ -64,18 +68,26 @@ u8 dequeue()
 u8 Is_value_exist(u8 value)
 {
     u8 i = 0; // counter
-    for(i; i <= 9; i++)
+    for(i; i <= 4; i++)
     {
         if(value == requests[i])
         {
-            return i;
+            return 1;
         }
     }
+    return 0;
 }
 
-void remove_index(u8 index)
+void remove_value(u8 value)
 {
-    requests[index] = 0;
+    u8 i = 0;
+    for(i; i <= 4; i++)
+    {
+        if(value == requests[i])
+        {
+            requests[i] = 0;
+        }
+    }
 }
 int main()
 {
@@ -125,39 +137,27 @@ void request(void) interrupt 0
     }
     if(!GET_BIT(P2,2))
     {
-        // push_value(2);
-        // P0 = requests[0];
-        TOG_BIT(P1, 1);
-        // SET_BIT(P1,2);
+        // Ground
+        push_value(10);
     }
     if(!GET_BIT(P2,3))
     {
-        // push_value(3);
-        // P0 = requests[0];
-        TOG_BIT(P1, 1);
-        // SET_BIT(P1,3);
+        // floor 1
+        push_value(1);
     }
     if(!GET_BIT(P2,4))
     {
-        // push_value(0);
-        // P0 = requests[0];
-        TOG_BIT(P1, 1);
-        // SET_BIT(P1,4);
+        // floor 2
+        push_value(2);
     }
     if(!GET_BIT(P2,5))
     {
-        // push_value(0);
-        // P0 = requests[0];
-        TOG_BIT(P1, 1);
-        // SET_BIT(P1,5);
+        // floor 3
+        push_value(3);
     }
     if(!GET_BIT(P2,6))
     {
-        // push_value(0);
-        // P0 = requests[0];
-        TOG_BIT(P1, 1);
-        // SET_BIT(P1,6);
+        // floor 4
+        push_value(4);
     }
-    
-    
 }
