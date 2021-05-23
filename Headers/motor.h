@@ -43,8 +43,11 @@ void elevate(u8 *current_floor, s8 direction)
         // we will go up
         // number of steps to reach the destination
         // 0001 -> 0010 -> 0100 -> 1000 -> 0001 -> ...
-
         P3 = 0x1f & P3;
+        cflor++;
+        // P0 = *current_floor;
+        *current_floor = cflor;
+        seven_segment(cflor);
         for (i = 1; i <= NUMBER_OF_STEPS; i++)
         {
             if (j == 7)
@@ -63,12 +66,7 @@ void elevate(u8 *current_floor, s8 direction)
             Delay_MS(100);
 
         }
-        cflor++;
-        TOG_BIT(P0, 0);
-        // P0 = *current_floor;
-        seven_segment(cflor);
         P3 = 0x0f & P3;
-        *current_floor = cflor;
     }
     else if (direction < 0)
     {
@@ -77,6 +75,9 @@ void elevate(u8 *current_floor, s8 direction)
         // number of steps to reach the destination
         // 1000 -> 0100 -> 0010 -> 0001 -> 1000 -> ...
         P3 = 0x0f & P3; // 1000 xxxx
+        cflor--;
+        seven_segment(cflor);
+        *current_floor = cflor;
         for (i = 1; i <= NUMBER_OF_STEPS; i++)
         {
 
@@ -94,9 +95,6 @@ void elevate(u8 *current_floor, s8 direction)
             }
             Delay_MS(100);
         }
-        cflor--;
-        seven_segment(cflor);
-        *current_floor = cflor;
         P3 = 0x0f & P3;
     }
 }

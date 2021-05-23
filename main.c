@@ -8,8 +8,8 @@
 #define TOP_FLOOR 4
 
 u8 CURRENT_FLOOR = 0; //GROUND
-// u8 pending[5] = {5, 5, 5, 5, 5};
-// u8 pending_index = 0; // the place in array where the new value will be placed
+u8 pending_requests[5] = {5, 5, 5, 5, 5};
+u8 pending_requests_index = 0; // the place in array where the new value will be placed
 u8 requests[5] = {5, 5, 5, 5, 5};
 u8 requests_index = 0; // the place in array where the new value will be placed
 u8 queue[2] = {0};
@@ -61,7 +61,7 @@ u8 dequeue()
  * returned Value = 1? value exists
  * returned Value = 0? value isn't exist
  */
-u8 Is_value_exist(u8 *arr,u8 value)
+u8 Is_value_exist(u8 *arr, u8 value)
 {
     u8 i = 0; // counter
     for (i; i <= 4; i++)
@@ -80,7 +80,7 @@ void sort(u8 *array, u8 size, u8 descending)
     u8 i = 0;
     u8 j = 0;
     u8 temp;
-    if (descending)
+    if (descending == -1)
     {
         for (i = 0; i < size - 1; i++)
         {
@@ -124,9 +124,9 @@ void sort(u8 *array, u8 size, u8 descending)
     }
 }
 
-void push_value(u8 *arr,u8 *idx,u8 value)
+void push_value(u8 *arr, u8 *idx, u8 value)
 {
-    if (Is_value_exist(arr,value))
+    if (Is_value_exist(arr, value))
         return;
 
     if (*idx <= 4)
@@ -145,16 +145,27 @@ void push_value(u8 *arr,u8 *idx,u8 value)
             }
         }
     }
-    sort(arr, 5, 0);
+    sort(arr, 5, direction);
 }
 
 u8 pop(u8 *arr)
 {
-    u8 val = arr[0];
-    arr[0] = 5;
-    P0 = val;
-    sort(arr, 5, 0);
-    return val;
+    u8 i;
+    u8 poped_value = 5;
+    for (i = 0; i < 5; i++)
+    {
+        if(arr[i] == 5)
+        {
+            continue;
+        }
+        poped_value = arr[i];
+        arr[i] = 5;
+        break;
+    }
+    
+    // P0 = val;
+    sort(arr, 5, direction);
+    return poped_value;
 }
 
 void go_to_floor()
@@ -238,8 +249,11 @@ int main()
         }
         else
         {
+            // 2 3 5 5 5
+            // 3
             go_to_floor();
-            pop(requests);
+            // direction = 0; //stationary
+            P0 = pop(requests);
         }
     }
     return 0;
@@ -247,45 +261,195 @@ int main()
 
 void request(void) interrupt 0
 {
+    u8 floor;
     if (!GET_BIT(P2, 2))
     {
-        // Ground
-        if (CURRENT_FLOOR != 0)
-        {                       
-            push_value(requests,&requests_index,GROUND_FLOOR);
-            // go_to_floor(&CURRENT_FLOOR, 0);
+        floor = GROUND_FLOOR;
+        // floor 0
+        if (CURRENT_FLOOR != floor)
+        {
+            if (requests[0] == 5)
+            {
+                direction = 1;
+                push_value(requests, &requests_index, floor);
+            }
+
+            else if (direction == 1)
+            {
+                if (CURRENT_FLOOR < floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR > floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
+                       
+            else if (direction == -1)
+            {
+                if (CURRENT_FLOOR > floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR < floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
         }
     }
     else if (!GET_BIT(P2, 3))
     {
+        floor = 1;
         // floor 1
-        if (CURRENT_FLOOR != 1)
+        if (CURRENT_FLOOR != floor)
         {
-            push_value(requests,&requests_index,1);
+
+            if (requests[0] == 5)
+            {
+                direction = 1;
+                push_value(requests, &requests_index, floor);
+            }
+            // 5 5 5 5 5 current 4
+            // 2 5 5 5 5 current 4
+            // 2 3 5 5 5 current 4
+            else if (direction == 1)
+            {
+                if (CURRENT_FLOOR < floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR > floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
+
+            else if (direction == -1)
+            {
+                if (CURRENT_FLOOR > floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR < floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
         }
     }
+
     else if (!GET_BIT(P2, 4))
     {
+        floor = 2;
         // floor 2
-        if (CURRENT_FLOOR != 2)
+        if (CURRENT_FLOOR != floor)
         {
-            push_value(requests,&requests_index,2);
+            if (requests[0] == 5)
+            {
+                direction = 1;
+                push_value(requests, &requests_index, floor);
+            }
+
+            else if (direction == 1)
+            {
+                if (CURRENT_FLOOR < floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR > floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
+
+            else if (direction == -1)
+            {
+                if (CURRENT_FLOOR > floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR < floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
         }
     }
     else if (!GET_BIT(P2, 5))
     {
+        floor = 3;
         // floor 3
-        if (CURRENT_FLOOR != 3)
+        if (CURRENT_FLOOR != floor)
         {
-            push_value(requests,&requests_index,3);
+            if (requests[0] == 5)
+            {
+                direction = 1;
+                push_value(requests, &requests_index, floor);
+            }
+
+            else if (direction == 1)
+            {
+                if (CURRENT_FLOOR < floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR > floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
+
+            else if (direction == -1)
+            {
+                if (CURRENT_FLOOR > floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR < floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
         }
     }
     else if (!GET_BIT(P2, 6))
     {
+        floor = TOP_FLOOR;
         // floor 4
-        if (CURRENT_FLOOR != 4)
+        if (CURRENT_FLOOR != floor)
         {
-            push_value(requests,&requests_index,4);
+            if (requests[0] == 5)
+            {
+                direction = 1;
+                push_value(requests, &requests_index, floor);
+            }
+
+            else if (direction == 1)
+            {
+                if (CURRENT_FLOOR < floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR > floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
+
+            else if (direction == -1)
+            {
+
+                if (CURRENT_FLOOR > floor)
+                {
+                    push_value(requests, &requests_index, floor);
+                }
+                else if (CURRENT_FLOOR < floor)
+                {
+                    push_value(pending_requests, &pending_requests_index, floor);
+                }
+            }
         }
     }
 }
