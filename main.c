@@ -8,8 +8,8 @@
 #define TOP_FLOOR 4
 
 u8 CURRENT_FLOOR = 0; //GROUND
-u8 pending[5] = {5, 5, 5, 5, 5};
-u8 pending_index = 0; // the place in array where the new value will be placed
+// u8 pending[5] = {5, 5, 5, 5, 5};
+// u8 pending_index = 0; // the place in array where the new value will be placed
 u8 requests[5] = {5, 5, 5, 5, 5};
 u8 requests_index = 0; // the place in array where the new value will be placed
 u8 queue[2] = {0};
@@ -132,7 +132,7 @@ void push_value(u8 *arr,u8 *idx,u8 value)
     if (*idx <= 4)
     {
         arr[*idx] = value;
-        *idx++;
+        (*idx)++;
     }
     else
     {
@@ -252,7 +252,7 @@ void request(void) interrupt 0
         // Ground
         if (CURRENT_FLOOR != 0)
         {                       
-            push_value(requests,requests_index,GROUND_FLOOR);
+            push_value(requests,&requests_index,GROUND_FLOOR);
             // go_to_floor(&CURRENT_FLOOR, 0);
         }
     }
@@ -261,7 +261,7 @@ void request(void) interrupt 0
         // floor 1
         if (CURRENT_FLOOR != 1)
         {
-            push_value(requests,requests_index,1);
+            push_value(requests,&requests_index,1);
         }
     }
     else if (!GET_BIT(P2, 4))
@@ -269,7 +269,7 @@ void request(void) interrupt 0
         // floor 2
         if (CURRENT_FLOOR != 2)
         {
-            push_value(requests,requests_index,2);
+            push_value(requests,&requests_index,2);
         }
     }
     else if (!GET_BIT(P2, 5))
@@ -277,7 +277,7 @@ void request(void) interrupt 0
         // floor 3
         if (CURRENT_FLOOR != 3)
         {
-            push_value(requests,requests_index,3);
+            push_value(requests,&requests_index,3);
         }
     }
     else if (!GET_BIT(P2, 6))
@@ -285,7 +285,7 @@ void request(void) interrupt 0
         // floor 4
         if (CURRENT_FLOOR != 4)
         {
-            push_value(requests,requests_index,4);
+            push_value(requests,&requests_index,4);
         }
     }
 }
