@@ -32,30 +32,21 @@ void seven_segment(u8 floor_num)
 // assume step angle = 45 so it needs 4 steps to complete 1 cycle
 // assume the number of steps = 16 step to mave one completed floor
 // assume rotating clockwise will make the elevator go up and anti-clockwise will go down
-void elevate(u8 *current_floor, u8 destination)
+void elevate(u8 *current_floor, s8 direction)
 {
-    // number of floors needed
-    signed int floors_number = destination - *current_floor;
+    u8 cflor = *current_floor;
     unsigned int i, j;
-    unsigned int steps;
 
-    if (floors_number > 0)
+    if (direction > 0)
     {
         j = 4;
         // we will go up
         // number of steps to reach the destination
         // 0001 -> 0010 -> 0100 -> 1000 -> 0001 -> ...
-        steps = NUMBER_OF_STEPS * (floors_number);
 
         P3 = 0x1f & P3;
-        for (i = 1; i <= steps; i++)
+        for (i = 1; i <= NUMBER_OF_STEPS; i++)
         {
-            if (i % NUMBER_OF_STEPS == 0)
-            {
-                (*current_floor)++;
-                seven_segment(*current_floor);
-            }
-
             if (j == 7)
             {
                 CLR_BIT(P3, j);
@@ -70,25 +61,24 @@ void elevate(u8 *current_floor, u8 destination)
             }
             //0001 xxxx j=5
             Delay_MS(100);
+
         }
+        cflor++;
+        TOG_BIT(P0, 0);
+        // P0 = *current_floor;
+        seven_segment(cflor);
         P3 = 0x0f & P3;
+        *current_floor = cflor;
     }
-    else if (floors_number < 0)
+    else if (direction < 0)
     {
         j = 7;
         // we will go down
         // number of steps to reach the destination
         // 1000 -> 0100 -> 0010 -> 0001 -> 1000 -> ...
-        steps = NUMBER_OF_STEPS * (floors_number * (-1));
         P3 = 0x0f & P3; // 1000 xxxx
-        for (i = 1; i <= steps; i++)
+        for (i = 1; i <= NUMBER_OF_STEPS; i++)
         {
-
-            if (i % NUMBER_OF_STEPS == 0)
-            {
-                (*current_floor)--;
-                seven_segment(*current_floor);
-            }
 
             if (j == 4)
             {
@@ -104,6 +94,9 @@ void elevate(u8 *current_floor, u8 destination)
             }
             Delay_MS(100);
         }
+        cflor--;
+        seven_segment(cflor);
+        *current_floor = cflor;
         P3 = 0x0f & P3;
     }
 }

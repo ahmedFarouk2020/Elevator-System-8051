@@ -9,3 +9,5 @@
 *.workspace
 *.pdsbak
 *.out
+*.#*
+*.exe

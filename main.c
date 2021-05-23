@@ -4,21 +4,18 @@
 #include "Headers/motor.h"
 #include "Headers/delay.h"
 
-#define GROUND_FLOOR 10
+#define GROUND_FLOOR 0
 #define TOP_FLOOR 4
 
 u8 CURRENT_FLOOR = 0; //GROUND
+u8 pending[5] = {5, 5, 5, 5, 5};
+u8 pending_index = 0; // the place in array where the new value will be placed
+u8 requests[5] = {5, 5, 5, 5, 5};
+u8 requests_index = 0; // the place in array where the new value will be placed
 u8 queue[2] = {0};
 u8 q_index = 0; // the place in array where the new value will be placed
 u8 q_size = 0;
-
-void go_to_floor(u8 *current_floor, u8 destination)
-{
-    CLR_BIT(P3, 0);
-    elevate(current_floor, destination);
-    SET_BIT(P3, 0);
-    Delay_MS(1000);
-}
+s8 direction = 1;
 
 u8 enqueue(u8 value)
 {
@@ -60,9 +57,134 @@ u8 dequeue()
     return 0;
 }
 
+/* 
+ * returned Value = 1? value exists
+ * returned Value = 0? value isn't exist
+ */
+u8 Is_value_exist(u8 *arr,u8 value)
+{
+    u8 i = 0; // counter
+    for (i; i <= 4; i++)
+    {
+        if (value == arr[i])
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void sort(u8 *array, u8 size, u8 descending)
+{
+    u8 ordered;
+    u8 i = 0;
+    u8 j = 0;
+    u8 temp;
+    if (descending)
+    {
+        for (i = 0; i < size - 1; i++)
+        {
+            ordered = 1;
+
+            for (j = 0; j < size - i - 1; j++)
+            {
+                if (array[j] < array[j + 1])
+                {
+                    temp = array[j];
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
+                    ordered = 0;
+                }
+            }
+
+            if (ordered)
+                break;
+        }
+    }
+    else
+    {
+        for (i = 0; i < size - 1; i++)
+        {
+            ordered = 1;
+
+            for (j = 0; j < size - i - 1; j++)
+            {
+                if (array[j] > array[j + 1])
+                {
+                    temp = array[j];
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
+                    ordered = 0;
+                }
+            }
+
+            if (ordered)
+                break;
+        }
+    }
+}
+
+void push_value(u8 *arr,u8 *idx,u8 value)
+{
+    if (Is_value_exist(arr,value))
+        return;
+
+    if (*idx <= 4)
+    {
+        arr[*idx] = value;
+        *idx++;
+    }
+    else
+    {
+        u8 counter = 0;
+        for (counter; counter <= 4; counter++)
+        {
+            if (arr[counter] == 5)
+            {
+                arr[counter] = value;
+            }
+        }
+    }
+    sort(arr, 5, 0);
+}
+
+u8 pop(u8 *arr)
+{
+    u8 val = arr[0];
+    arr[0] = 5;
+    P0 = val;
+    sort(arr, 5, 0);
+    return val;
+}
+
+void go_to_floor()
+{
+    CLR_BIT(P3, 0);
+    if (CURRENT_FLOOR > requests[0])
+    {
+        direction = -1;
+    }
+    else
+    {
+        direction = 1;
+    }
+
+    // 3 current=1
+    // 3 4 current=1
+    // 2 3 4 current=3
+    while (CURRENT_FLOOR != requests[0])
+    {
+        elevate(&CURRENT_FLOOR, direction);
+    }
+
+    SET_BIT(P3, 0);
+    Delay_MS(1000);
+}
+
 int main()
 {
-    u8 floor = 0;
+    // u8 floor,i;
+
     // diable the watch dog
     WDTCN = 0x0DE;
     WDTCN = 0x0AD;
@@ -88,23 +210,36 @@ int main()
 
     // 01111111
     P2 = 0x7f; //CONTROL_PORTS
+
     CLR_BIT(P3, 0);
     seven_segment(CURRENT_FLOOR);
+
     while (1)
     {
-        if (q_size == 0)
+
+        // if (q_size == 0)
+        // {
+        //     continue;
+        // }
+
+        // floor = dequeue();
+        // if (floor == GROUND_FLOOR)
+        // {
+        //     go_to_floor(&CURRENT_FLOOR, 0);
+        // }
+        // else if (floor == TOP_FLOOR)
+        // {
+        //     go_to_floor(&CURRENT_FLOOR, TOP_FLOOR);
+        // }
+
+        if (requests[0] == 5)
         {
             continue;
         }
-
-        floor = dequeue();
-        if (floor == GROUND_FLOOR)
+        else
         {
-            go_to_floor(&CURRENT_FLOOR, 0);
-        }
-        else if (floor == TOP_FLOOR)
-        {
-            go_to_floor(&CURRENT_FLOOR, TOP_FLOOR);
+            go_to_floor();
+            pop(requests);
         }
     }
     return 0;
@@ -116,8 +251,9 @@ void request(void) interrupt 0
     {
         // Ground
         if (CURRENT_FLOOR != 0)
-        {
-            go_to_floor(&CURRENT_FLOOR, 0);
+        {                       
+            push_value(requests,requests_index,GROUND_FLOOR);
+            // go_to_floor(&CURRENT_FLOOR, 0);
         }
     }
     else if (!GET_BIT(P2, 3))
@@ -125,7 +261,7 @@ void request(void) interrupt 0
         // floor 1
         if (CURRENT_FLOOR != 1)
         {
-            go_to_floor(&CURRENT_FLOOR, 1);
+            push_value(requests,requests_index,1);
         }
     }
     else if (!GET_BIT(P2, 4))
@@ -133,7 +269,7 @@ void request(void) interrupt 0
         // floor 2
         if (CURRENT_FLOOR != 2)
         {
-            go_to_floor(&CURRENT_FLOOR, 2);
+            push_value(requests,requests_index,2);
         }
     }
     else if (!GET_BIT(P2, 5))
@@ -141,7 +277,7 @@ void request(void) interrupt 0
         // floor 3
         if (CURRENT_FLOOR != 3)
         {
-            go_to_floor(&CURRENT_FLOOR, 3);
+            push_value(requests,requests_index,3);
         }
     }
     else if (!GET_BIT(P2, 6))
@@ -149,7 +285,7 @@ void request(void) interrupt 0
         // floor 4
         if (CURRENT_FLOOR != 4)
         {
-            go_to_floor(&CURRENT_FLOOR, 4);
+            push_value(requests,requests_index,4);
         }
     }
 }
