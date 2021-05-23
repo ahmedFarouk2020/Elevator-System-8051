@@ -13,7 +13,7 @@ u8 pending_requests[5] = {5, 5, 5, 5, 5};
 u8 pending_requests_index = 0; // the place in array where the new value will be placed
 u8 requests[5] = {5, 5, 5, 5, 5};
 u8 requests_index = 0; // the place in array where the new value will be placed
-u8 queue[2] = {0};
+u8 queue[2] = {5,5};
 u8 q_index = 0; // the place in array where the new value will be placed
 u8 q_size = 0;
 s8 direction = 1;
@@ -41,12 +41,12 @@ u8 dequeue()
 {
     u8 counter = 0;
     u8 poped_data;
-    for (counter; counter <= 5; counter++)
+    for (counter; counter <= 1; counter++)
     {
-        if (queue[counter] != 0)
+        if (queue[counter] != 5)
         {
             poped_data = queue[counter];
-            queue[counter] = 0;
+            queue[counter] = 5;
             if (counter == 4)
             {
                 q_index = 0;
@@ -111,6 +111,7 @@ void sort(u8 *array, u8 size)
             }
         }
     }
+    // Delay_MS(2000);
 }
 
 void push_value(u8 *arr, u8 *idx, u8 value)
@@ -148,20 +149,20 @@ u8 pop(u8 *arr, u8 idx)
 
 void go_to_floor()
 {
-    u8 i;
+    // u8 i;
     CLR_BIT(P3, 0);
     // 1 5 5 5 5  CURRENT_FLOOR=3 NEXT_FLOOR=0
-    if (CURRENT_FLOOR > requests[0])
+    if (CURRENT_FLOOR > requests[NEXT_FLOOR])
     {
         direction = -1;
-        for (i = 0; i < 5; i++)
-        {
-            if (requests[i] == 5)
-            {
-                NEXT_FLOOR = i - 1;
-                break;
-            }
-        }
+        // for (i = 0; i < 5; i++)
+        // {
+        //     if (requests[i] == 5)
+        //     {
+        //         NEXT_FLOOR = i - 1;
+        //         break;
+        //     }
+        // }
     }
     else
     {
@@ -171,11 +172,11 @@ void go_to_floor()
 
     while (CURRENT_FLOOR != requests[NEXT_FLOOR])
     {
-        if(direction == -1)
+        if (direction == -1)
             CURRENT_FLOOR--;
-        else if(direction == 1)
+        else if (direction == 1)
             CURRENT_FLOOR++;
-        P0 = direction + 1;
+        // P0 = direction + 1;
         elevate(direction);
         seven_segment(CURRENT_FLOOR);
     }
@@ -186,7 +187,7 @@ void go_to_floor()
 
 int main()
 {
-    // u8 floor,i;
+    u8 floor;
 
     // diable the watch dog
     WDTCN = 0x0DE;
@@ -220,24 +221,15 @@ int main()
     while (1)
     {
 
-        // if (q_size == 0)
-        // {
-        //     continue;
-        // }
-
-        // floor = dequeue();
-        // if (floor == GROUND_FLOOR)
-        // {
-        //     go_to_floor(&CURRENT_FLOOR, 0);
-        // }
-        // else if (floor == TOP_FLOOR)
-        // {
-        //     go_to_floor(&CURRENT_FLOOR, TOP_FLOOR);
-        // }
-
         if (requests[0] == 5)
         {
-            continue;
+            if (q_size != 0)
+            {
+                floor = dequeue();
+                P0 = floor;
+                push_value(requests, &requests_index, floor);
+                go_to_floor();
+            }
         }
         else
         {
@@ -447,12 +439,12 @@ void request2(void) interrupt 2
 {
     if (!GET_BIT(P2, 1))
     {
-        if (CURRENT_FLOOR != 0)
+        if (CURRENT_FLOOR != GROUND_FLOOR)
             enqueue(GROUND_FLOOR);
     }
     if (!GET_BIT(P2, 0))
     {
-        if (CURRENT_FLOOR != 4)
+        if (CURRENT_FLOOR != TOP_FLOOR)
             enqueue(TOP_FLOOR);
     }
 }
