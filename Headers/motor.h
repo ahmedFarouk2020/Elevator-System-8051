@@ -32,9 +32,8 @@ void seven_segment(u8 floor_num)
 // assume step angle = 45 so it needs 4 steps to complete 1 cycle
 // assume the number of steps = 16 step to mave one completed floor
 // assume rotating clockwise will make the elevator go up and anti-clockwise will go down
-void elevate(u8 *current_floor, s8 direction)
+void elevate(s8 direction)
 {
-    u8 cflor = *current_floor;
     unsigned int i, j;
 
     if (direction > 0)
@@ -44,10 +43,7 @@ void elevate(u8 *current_floor, s8 direction)
         // number of steps to reach the destination
         // 0001 -> 0010 -> 0100 -> 1000 -> 0001 -> ...
         P3 = 0x1f & P3;
-        cflor++;
         // P0 = *current_floor;
-        *current_floor = cflor;
-        seven_segment(cflor);
         for (i = 1; i <= NUMBER_OF_STEPS; i++)
         {
             if (j == 7)
@@ -63,7 +59,7 @@ void elevate(u8 *current_floor, s8 direction)
                 SET_BIT(P3, j); //0001 xxxx j=4
             }
             //0001 xxxx j=5
-            Delay_MS(100);
+            Delay_MS(200);
 
         }
         P3 = 0x0f & P3;
@@ -75,9 +71,6 @@ void elevate(u8 *current_floor, s8 direction)
         // number of steps to reach the destination
         // 1000 -> 0100 -> 0010 -> 0001 -> 1000 -> ...
         P3 = 0x0f & P3; // 1000 xxxx
-        cflor--;
-        seven_segment(cflor);
-        *current_floor = cflor;
         for (i = 1; i <= NUMBER_OF_STEPS; i++)
         {
 
@@ -93,7 +86,7 @@ void elevate(u8 *current_floor, s8 direction)
                 j--;
                 SET_BIT(P3, j); //0001 xxxx j=4
             }
-            Delay_MS(100);
+            Delay_MS(200);
         }
         P3 = 0x0f & P3;
     }

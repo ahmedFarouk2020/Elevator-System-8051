@@ -7,6 +7,7 @@
 #define GROUND_FLOOR 0
 #define TOP_FLOOR 4
 
+u8 NEXT_FLOOR;
 u8 CURRENT_FLOOR = 0; //GROUND
 u8 pending_requests[5] = {5, 5, 5, 5, 5};
 u8 pending_requests_index = 0; // the place in array where the new value will be placed
@@ -74,52 +75,40 @@ u8 Is_value_exist(u8 *arr, u8 value)
     return 0;
 }
 
-void sort(u8 *array, u8 size, u8 descending)
+void sort(u8 *array, u8 size)
 {
     u8 ordered;
     u8 i = 0;
     u8 j = 0;
     u8 temp;
-    if (descending == -1)
+
+    for (i = 0; i < size - 1; i++)
     {
-        for (i = 0; i < size - 1; i++)
+        ordered = 1;
+
+        for (j = 0; j < size - i - 1; j++)
         {
-            ordered = 1;
-
-            for (j = 0; j < size - i - 1; j++)
+            if (array[j] > array[j + 1])
             {
-                if (array[j] < array[j + 1])
-                {
-                    temp = array[j];
-                    array[j] = array[j + 1];
-                    array[j + 1] = temp;
-                    ordered = 0;
-                }
+                temp = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+                ordered = 0;
             }
-
-            if (ordered)
-                break;
         }
+
+        if (ordered)
+            break;
     }
-    else
+    if (direction == -1)
     {
-        for (i = 0; i < size - 1; i++)
+        for (i = 0; i < 5; i++)
         {
-            ordered = 1;
-
-            for (j = 0; j < size - i - 1; j++)
+            if (requests[i] == 5)
             {
-                if (array[j] > array[j + 1])
-                {
-                    temp = array[j];
-                    array[j] = array[j + 1];
-                    array[j + 1] = temp;
-                    ordered = 0;
-                }
-            }
-
-            if (ordered)
+                NEXT_FLOOR = i - 1;
                 break;
+            }
         }
     }
 }
@@ -145,49 +134,52 @@ void push_value(u8 *arr, u8 *idx, u8 value)
             }
         }
     }
-    sort(arr, 5, direction);
+    sort(arr, 5);
 }
 
-u8 pop(u8 *arr)
+u8 pop(u8 *arr, u8 idx)
 {
-    u8 i;
-    u8 poped_value = 5;
-    for (i = 0; i < 5; i++)
-    {
-        if(arr[i] == 5)
-        {
-            continue;
-        }
-        poped_value = arr[i];
-        arr[i] = 5;
-        break;
-    }
-    
-    // P0 = val;
-    sort(arr, 5, direction);
-    return poped_value;
+    u8 popped_value = arr[idx];
+    arr[idx] = 5;
+    sort(arr, 5);
+
+    return popped_value;
 }
 
 void go_to_floor()
 {
+    u8 i;
     CLR_BIT(P3, 0);
+    // 1 5 5 5 5  CURRENT_FLOOR=3 NEXT_FLOOR=0
     if (CURRENT_FLOOR > requests[0])
     {
         direction = -1;
+        for (i = 0; i < 5; i++)
+        {
+            if (requests[i] == 5)
+            {
+                NEXT_FLOOR = i - 1;
+                break;
+            }
+        }
     }
     else
     {
         direction = 1;
+        NEXT_FLOOR = 0;
     }
 
-    // 3 current=1
-    // 3 4 current=1
-    // 2 3 4 current=3
-    while (CURRENT_FLOOR != requests[0])
+    while (CURRENT_FLOOR != requests[NEXT_FLOOR])
     {
-        elevate(&CURRENT_FLOOR, direction);
+        if(direction == -1)
+            CURRENT_FLOOR--;
+        else if(direction == 1)
+            CURRENT_FLOOR++;
+        P0 = direction + 1;
+        elevate(direction);
+        seven_segment(CURRENT_FLOOR);
     }
-
+    pop(requests, NEXT_FLOOR);
     SET_BIT(P3, 0);
     Delay_MS(1000);
 }
@@ -252,8 +244,6 @@ int main()
             // 2 3 5 5 5
             // 3
             go_to_floor();
-            // direction = 0; //stationary
-            P0 = pop(requests);
         }
     }
     return 0;
@@ -270,7 +260,6 @@ void request(void) interrupt 0
         {
             if (requests[0] == 5)
             {
-                direction = 1;
                 push_value(requests, &requests_index, floor);
             }
 
@@ -285,7 +274,7 @@ void request(void) interrupt 0
                     push_value(pending_requests, &pending_requests_index, floor);
                 }
             }
-                       
+
             else if (direction == -1)
             {
                 if (CURRENT_FLOOR > floor)
